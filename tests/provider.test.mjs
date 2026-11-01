@@ -34,6 +34,21 @@ test("registration: native chain configured, no guard-ready service, honest log,
 	assert.equal(ctx.effects.length, 2, "parent ACL cleanup + our revocation");
 	assert.ok(ctx.infos.some((line) => line.includes("cache-redirect provider loaded") && line.includes("native chain selects the backend per call")), "registration log makes no premature enhancement claim");
 	assert.ok(!ctx.warnings.some((line) => line.includes("CACHE_REDIRECT_CONFIG")), "valid config logs no config warning");
+	assert.ok(!ctx.warnings.some((line) => line.includes("CACHE_REDIRECT_VERSION")), "a verified Host version logs no compatibility warning");
+});
+
+test("unlisted DSH versions warn without blocking provider startup or cache redirection", async (t) => {
+	const home = makeFixtureHome(t);
+	const ws = makeWorkspace(t, home);
+	const { provider, ctx } = await makeProvider(t, { home, versions: { dsh: "0.2.3-alpha.1" } });
+	const warnings = ctx.warnings.filter((line) => line.includes("CACHE_REDIRECT_VERSION"));
+	assert.equal(warnings.length, 1);
+	assert.match(warnings[0], /0\.2\.3-alpha\.1/);
+	assert.match(warnings[0], /warning-only/);
+	assert.match(warnings[0], /0\.2\.1-alpha\.2, 0\.2\.2-alpha\.2/);
+	provider.internals.probeBwrap = () => true;
+	const result = await confineWs(provider, ws);
+	assert.equal(result.argv.filter((value) => value === "--setenv").length, 9, "an unlisted version is not forced off");
 });
 
 test("G01 bwrap branch: nine setenv groups, prefix/mounts/payload preserved, metadata passthrough", async (t) => {
