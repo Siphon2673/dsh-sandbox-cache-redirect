@@ -70,17 +70,18 @@ export function makeCtx({ home, nativeRow, extraRows = [] } = {}) {
 }
 
 /** Build the provider class bound to a fixture environment/platform. */
-export async function providerClass({ home, platform = "linux", path: fixturePath } = {}) {
+export async function providerClass({ home, platform = "linux", path: fixturePath, versions } = {}) {
 	const { buildProvider } = await import("../lib/provider.js");
-	return buildProvider(shared, {
+	const versionedShared = versions ? { ...shared, versions: { ...shared.versions, ...versions } } : shared;
+	return buildProvider(versionedShared, {
 		env: { HOME: home, PATH: fixturePath ?? path.join(home, "bin") },
 		platform,
 	});
 }
 
 /** Construct a provider instance with a fixture ctx. */
-export async function makeProvider(t, { home, config = {}, platform, nativeRow, fixturePath } = {}) {
-	const Class = await providerClass({ home, platform, fixturePath });
+export async function makeProvider(t, { home, config = {}, platform, nativeRow, fixturePath, versions } = {}) {
+	const Class = await providerClass({ home, platform, fixturePath, versions });
 	const ctx = makeCtx({ home, nativeRow });
 	const provider = new Class(ctx, config);
 	t.after(() => {

@@ -17,6 +17,8 @@ Read-only file system (os error 30)
 
 本插件让 DSH 在调用 bwrap 时自动注入工具专用目录变量：缓存、Python 运行时与 Go 状态全部落进项目目录。
 
+DSH 0.2.2 原生新增的 `--add-dir` / `additionalWritableRoots` 可以把宿主缓存目录额外授权为可写，但它不会设置上述变量，也会扩大沙箱的宿主可写面；Web 默认组合同样没有自动缓存重定向。本插件保留的价值是**项目内缓存隔离、九变量自动注入，以及不新增可写挂载**。只需要共享宿主缓存且接受额外授权时，可优先使用原生功能。
+
 ## 工作原理
 
 ```text
@@ -48,6 +50,7 @@ bash / GUI PTY / 其他同服务域消费者
 | 状态 | 行为 |
 |---|---|
 | 未安装 / 停用 / 已卸载 / 整包被 DSH 跳过 | 本插件配置层退出；恢复其他配置决定的原生 provider；不残留任何就绪依赖或补丁 |
+| DSH 版本不在已验收兼容列表 | 启动时记录一次 `CACHE_REDIRECT_VERSION` 警告并继续；不强制阻止使用，但不代表该版本已验收；实际 API/结构不兼容仍失败关闭 |
 | Linux + workspace-write + 原生选择 bwrap + 布局合格 | 自动注入完整九变量，原生挂载与载荷原样保留 |
 | Linux + workspace-write + 原生选择 Landlock | 原生结果原样返回；每个 provider 实例对该降级明确告警一次；**不宣称缓存重定向已启用**（uv 等命令仍可能因默认缓存不可写而失败） |
 | read-only | 原生结果原样返回，不注入，也不报增强失效告警 |
@@ -94,8 +97,9 @@ bash / GUI PTY / 其他同服务域消费者
 ## 支持范围
 
 - 平台：Linux（本版增强仅在 Linux + workspace-write + bwrap 链路上生效）。
-- 已验证环境：Fedora 44（WSL2）、DSH 0.2.1-alpha.2、Node 24、bwrap 0.12.0；npm 形态的 DSH CLI/Host。打包 Electron、其他启动器与远程执行器未验证。
-- peer 声明保持保守：仅声明已实际验证的版本；DSH 升级后须按兼容流程重新验收再扩大范围。运行时不再做固定版本字符串判等，改为按调用的结构契约（载荷尾部、selectedRunner 形状、元数据），不兼容时按调用失败关闭。
+- 已验证环境：Fedora 44（WSL2）、DSH **0.2.1-alpha.2、0.2.2-alpha.2**、Node 24、bwrap 0.12.0；npm 形态的 DSH CLI/Host。打包 Electron、其他启动器与远程执行器未验证。
+- 已验收 DSH 版本列表维护在 `lib/peers.js` 的 `VERIFIED_DSH_VERSIONS`。manifest peer 使用 `*` 是为了避免 DSH 在导入前按版本号整包拒绝，**不表示所有版本均已兼容**。未列入版本仅在 provider 启动时警告并继续；升级后应重新验收再扩充列表。
+- 运行时按调用的结构契约（载荷尾部、selectedRunner 形状、元数据）识别实际不兼容并失败关闭；“未知版本仅警告”不会放宽这些安全合同。
 - GOPATH 为源码模式的项目、依赖宿主自定义 GOPATH 的项目不承诺兼容；插件不设置 GOSUMDB=off，不修改 GOPROXY/GOTOOLCHAIN/GOFLAGS。
 
 ## 项目侧提示：.gitignore

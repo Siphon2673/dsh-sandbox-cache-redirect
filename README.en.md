@@ -17,6 +17,8 @@ Read-only file system (os error 30)
 
 This plugin makes DSH inject tool-specific directory variables when it invokes bwrap: caches, Python runtimes, and Go state all land inside the project.
 
+DSH 0.2.2's native `--add-dir` / `additionalWritableRoots` can additionally authorize host cache directories for writes, but it does not set these variables and it expands the sandbox's writable host surface; the default Web composition does not redirect caches automatically either. This plugin retains its value for **project-local cache isolation, automatic nine-variable injection, and no additional writable mounts**. If shared host caches plus explicit extra grants are all you need, prefer the native feature.
+
 ## How it works
 
 ```text
@@ -51,6 +53,7 @@ The cache root comes from the current call's session workspace root (canonical p
 | State | Behavior |
 |---|---|
 | Not installed / disabled / uninstalled / bundle skipped by DSH | The plugin's configuration layer exits; the native provider returns as the other layers decide; no readiness dependency or patch remains |
+| DSH version absent from the verified compatibility list | One `CACHE_REDIRECT_VERSION` warning at startup, then continue; use is not forcibly blocked, but the version is not claimed as accepted; actual API/structural incompatibilities still fail closed |
 | Linux + workspace-write + native bwrap + valid layout | Full nine-variable injection; native mounts and payload preserved |
 | Linux + workspace-write + native Landlock | Native result returned as-is; one explicit downgrade warning per provider instance; **cache redirection is not claimed active** (uv and friends may still fail on unwritable default caches) |
 | read-only | Native result returned as-is; no injection, no spurious enhancement warnings |
@@ -97,8 +100,9 @@ Note: already-started processes, background tasks, and PTYs keep the environment
 ## Supported scope
 
 - Platform: Linux (the enhancement only applies on the Linux + workspace-write + bwrap path).
-- Verified environment: Fedora 44 (WSL2), DSH 0.2.1-alpha.2, Node 24, bwrap 0.12.0; npm-form DSH CLI/Host. Packaged Electron, other launchers, and remote executors are not verified.
-- The peer range stays conservative: only versions with real acceptance evidence are declared; after a DSH upgrade, re-run compatibility acceptance before widening. Runtime no longer performs fixed version-string equality; per-call structural contracts (payload suffix, selectedRunner shape, metadata) fail the call closed on incompatibility instead.
+- Verified environment: Fedora 44 (WSL2), DSH **0.2.1-alpha.2 and 0.2.2-alpha.2**, Node 24, bwrap 0.12.0; npm-form DSH CLI/Host. Packaged Electron, other launchers, and remote executors are not verified.
+- The accepted DSH version list lives in `VERIFIED_DSH_VERSIONS` in `lib/peers.js`. Manifest peers use `*` to prevent DSH from rejecting an entire bundle on a version string before import; this **does not claim every version is compatible**. An unlisted version only warns at provider startup and continues; re-run acceptance after an upgrade before adding it to the list.
+- Per-call structural contracts (payload suffix, selectedRunner shape, metadata) still fail closed on actual incompatibility; warning-only handling of unknown versions does not relax those safety contracts.
 - Projects using GOPATH source mode or depending on a host-custom GOPATH are not promised compatibility; the plugin never sets GOSUMDB=off and never modifies GOPROXY/GOTOOLCHAIN/GOFLAGS.
 
 ## For project maintainers: .gitignore
