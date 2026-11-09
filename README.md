@@ -97,7 +97,7 @@ bash / GUI PTY / 其他同服务域消费者
 ## 支持范围
 
 - 平台：Linux（本版增强仅在 Linux + workspace-write + bwrap 链路上生效）。
-- 已验证环境：Fedora 44（WSL2）、DSH **0.2.1-alpha.2、0.2.2-alpha.2**、Node 24、bwrap 0.12.0；npm 形态的 DSH CLI/Host。打包 Electron、其他启动器与远程执行器未验证。
+- 已验证环境：Fedora 44（WSL2）、DSH **0.2.1-alpha.2、0.2.2-alpha.2、0.2.2-rc.1**、Node 24、bwrap 0.12.0；npm 形态的 DSH CLI/Host。打包 Electron、其他启动器与远程执行器未验证。
 - 已验收 DSH 版本列表维护在 `lib/peers.js` 的 `VERIFIED_DSH_VERSIONS`。manifest peer 使用 `*` 是为了避免 DSH 在导入前按版本号整包拒绝，**不表示所有版本均已兼容**。未列入版本仅在 provider 启动时警告并继续；升级后应重新验收再扩充列表。
 - 运行时按调用的结构契约（载荷尾部、selectedRunner 形状、元数据）识别实际不兼容并失败关闭；“未知版本仅警告”不会放宽这些安全合同。
 - GOPATH 为源码模式的项目、依赖宿主自定义 GOPATH 的项目不承诺兼容；插件不设置 GOSUMDB=off，不修改 GOPROXY/GOTOOLCHAIN/GOFLAGS。

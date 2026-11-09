@@ -45,7 +45,7 @@ test("unlisted DSH versions warn without blocking provider startup or cache redi
 	assert.equal(warnings.length, 1);
 	assert.match(warnings[0], /0\.2\.3-alpha\.1/);
 	assert.match(warnings[0], /warning-only/);
-	assert.match(warnings[0], /0\.2\.1-alpha\.2, 0\.2\.2-alpha\.2/);
+	assert.match(warnings[0], /0\.2\.1-alpha\.2, 0\.2\.2-alpha\.2, 0\.2\.2-rc\.1/);
 	provider.internals.probeBwrap = () => true;
 	const result = await confineWs(provider, ws);
 	assert.equal(result.argv.filter((value) => value === "--setenv").length, 9, "an unlisted version is not forced off");

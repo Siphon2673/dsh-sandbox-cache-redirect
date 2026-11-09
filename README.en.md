@@ -100,7 +100,7 @@ Note: already-started processes, background tasks, and PTYs keep the environment
 ## Supported scope
 
 - Platform: Linux (the enhancement only applies on the Linux + workspace-write + bwrap path).
-- Verified environment: Fedora 44 (WSL2), DSH **0.2.1-alpha.2 and 0.2.2-alpha.2**, Node 24, bwrap 0.12.0; npm-form DSH CLI/Host. Packaged Electron, other launchers, and remote executors are not verified.
+- Verified environment: Fedora 44 (WSL2), DSH **0.2.1-alpha.2, 0.2.2-alpha.2, and 0.2.2-rc.1**, Node 24, bwrap 0.12.0; npm-form DSH CLI/Host. Packaged Electron, other launchers, and remote executors are not verified.
 - The accepted DSH version list lives in `VERIFIED_DSH_VERSIONS` in `lib/peers.js`. Manifest peers use `*` to prevent DSH from rejecting an entire bundle on a version string before import; this **does not claim every version is compatible**. An unlisted version only warns at provider startup and continues; re-run acceptance after an upgrade before adding it to the list.
 - Per-call structural contracts (payload suffix, selectedRunner shape, metadata) still fail closed on actual incompatibility; warning-only handling of unknown versions does not relax those safety contracts.
 - Projects using GOPATH source mode or depending on a host-custom GOPATH are not promised compatibility; the plugin never sets GOSUMDB=off and never modifies GOPROXY/GOTOOLCHAIN/GOFLAGS.
